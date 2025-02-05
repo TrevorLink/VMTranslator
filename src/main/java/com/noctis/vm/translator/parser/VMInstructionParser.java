@@ -25,7 +25,7 @@ public class VMInstructionParser {
    /**
     * Open the vm file and initialize the parser by reading the vm instructions
     *
-    * @param vmFileLocation Absolute file path for the vm file
+    * @param vmFileLocation absolute file path for the vm file
     */
    public VMInstructionParser(String vmFileLocation) {
       index = 0;
@@ -33,11 +33,11 @@ public class VMInstructionParser {
       try {
          vmInstructionList = Files.lines(Paths.get(vmFileLocation))
                  .filter(vmInstruction -> !isCommentLine(vmInstruction))
-                 //TODO ignore all the whitespace at the start and end of the line
-                 .map(content -> content.replaceAll("\\s*", ""))
+                 //ignore all the whitespace at the start and end of the instruction
+                 .map(String::trim)
                  .collect(Collectors.toList());
       } catch (IOException e) {
-         throw new RuntimeException("Error occurred when trying to read the vm file:" + vmFileLocation);
+         throw new RuntimeException("Error occurred when trying to read the vm file:" + vmFileLocation, e);
       }
    }
 
@@ -106,6 +106,11 @@ public class VMInstructionParser {
       return currentInstruction.substring(currentInstruction.lastIndexOf(" ") + 1);
    }
 
+   /**
+    * Check whether the instruction is an VM instruction comment
+    * @param vmInstruction instruction
+    * @return whether is comment
+    */
    private boolean isCommentLine(String vmInstruction) {
       if (StringUtils.isEmpty(vmInstruction)) {
          return true;
