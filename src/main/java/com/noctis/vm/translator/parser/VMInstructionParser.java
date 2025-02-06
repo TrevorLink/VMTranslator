@@ -2,12 +2,15 @@ package com.noctis.vm.translator.parser;
 
 import com.noctis.vm.translator.common.InstructionType;
 import com.noctis.vm.translator.common.VMConstants;
+import com.noctis.vm.translator.exception.InstructionParseException;
 import com.noctis.vm.translator.util.StringUtils;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -27,7 +30,7 @@ public class VMInstructionParser {
     *
     * @param vmFileLocation absolute file path for the vm file
     */
-   public VMInstructionParser(String vmFileLocation) {
+   public VMInstructionParser(String vmFileLocation) throws InstructionParseException {
       index = 0;
       currentInstruction = null;
       try {
@@ -38,6 +41,10 @@ public class VMInstructionParser {
                  .collect(Collectors.toList());
       } catch (IOException e) {
          throw new RuntimeException("Error occurred when trying to read the vm file:" + vmFileLocation, e);
+      }
+      //Validate all the non-whitespace instructions in vm file
+      for (String instruction : vmInstructionList) {
+         validate(instruction);
       }
    }
 
@@ -81,8 +88,6 @@ public class VMInstructionParser {
    }
 
    /**
-    * In case of arithmetic vm instruction returns the instruction itself
-    *
     * @return The first argument of the vm instruction
     */
    public String arg1() {
@@ -90,13 +95,17 @@ public class VMInstructionParser {
       if (instructionType == null) {
          return null;
       }
+      //For arithmetic instruction return the instruction itself
       if (InstructionType.C_ARITHMETIC.equals(instructionType)) {
          return currentInstruction;
       }
-      //C_PUSH/C_POP returns the segment identifier, ensure that the vm instruction only contains two whitespace now
+      //C_PUSH/C_POP returns the virtual segment identifier, an valid c_push/c_pop vm instruction only contains two whitespace
       return currentInstruction.substring(currentInstruction.indexOf(" ") + 1, currentInstruction.lastIndexOf(" "));
    }
 
+   /**
+    * @return the second argument of the current command
+    */
    public String arg2() {
       InstructionType instructionType = this.commandType();
       //Should be called only if the instruction type is push/pop type
@@ -108,6 +117,7 @@ public class VMInstructionParser {
 
    /**
     * Check whether the instruction is an VM instruction comment
+    *
     * @param vmInstruction instruction
     * @return whether is comment
     */
@@ -116,5 +126,22 @@ public class VMInstructionParser {
          return true;
       }
       return vmInstruction.contains(VMConstants.COMMENT_IDENTIFIER);
+   }
+
+   /**
+    * Check whether the instruction is valid by regex
+    *
+    * @param instruction instruction that need to validate
+    * @throws InstructionParseException When instruction does not match the regular expression (for those who contains more than 2 white-space will not match also)
+    */
+   private void validate(String instruction) throws InstructionParseException {
+      if (StringUtils.isEmpty(instruction)) {
+         throw new InstructionParseException("Instruction is empty");
+      }
+      Pattern pattern = Pattern.compile(VMConstants.INSTRUCTION_PATTERN);
+      Matcher matcher = pattern.matcher(instruction);
+      if (!VMConstants.ARITHMETIC_COMMAND_SET.contains(instruction) && !matcher.matches()) {
+         throw new InstructionParseException("Invalid instruction: " + instruction);
+      }
    }
 }
