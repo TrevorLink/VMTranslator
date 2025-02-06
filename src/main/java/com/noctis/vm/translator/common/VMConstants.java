@@ -1,8 +1,6 @@
 package com.noctis.vm.translator.common;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author Noctis
@@ -12,13 +10,22 @@ public class VMConstants {
 
    public static final String INSTRUCTION_PATTERN = "^(push|pop)\\s(constant|local|argument|this|that|static|temp|pointer)\\s\\d+$";
 
-   public static Set<String> ARITHMETIC_COMMAND_SET = new HashSet<>(Arrays.asList("add", "sub", "neg", "eq", "gt", "lt", "and", "or", "not"));
+   public static final Set<String> ARITHMETIC_COMMAND_SET = new HashSet<>(Arrays.asList("add", "sub", "neg", "eq", "gt", "lt", "and", "or", "not"));
 
-   public static String PUSH_COMMAND_PREFIX = "push";
+   public static final String PUSH_COMMAND_PREFIX = "push";
 
-   public static String POP_COMMAND_PREFIX = "pop";
+   public static final String POP_COMMAND_PREFIX = "pop";
 
-   public static String COMMENT_IDENTIFIER = "//";
+   public static final String COMMENT_IDENTIFIER = "//";
 
-   public static String RESULT_ASM_FILE_SUFFIX = ".asm";
+   public static final String RESULT_ASM_FILE_SUFFIX = ".asm";
+
+   public static final Map<String, String> virtualSegmentAndIdentifierMap = new HashMap<>(4);
+
+   static {
+      virtualSegmentAndIdentifierMap.put("local", "@LCL");
+      virtualSegmentAndIdentifierMap.put("argument", "@ARG");
+      virtualSegmentAndIdentifierMap.put("this", "@THIS");
+      virtualSegmentAndIdentifierMap.put("that", "@THAT");
+   }
 }

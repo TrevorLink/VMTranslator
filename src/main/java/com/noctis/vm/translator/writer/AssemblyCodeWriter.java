@@ -14,11 +14,13 @@ import java.io.IOException;
 public class AssemblyCodeWriter {
 
    private final FileWriter fw;
+   private final String fileName;
 
    public AssemblyCodeWriter(String fileName) {
       if (StringUtils.isEmpty(fileName)) {
          throw new RuntimeException("Empty result file name");
       }
+      this.fileName = fileName;
       fileName = fileName + VMConstants.RESULT_ASM_FILE_SUFFIX;
       try {
          fw = new FileWriter(fileName);
@@ -38,10 +40,10 @@ public class AssemblyCodeWriter {
       String content;
       switch (instructionType) {
          case C_PUSH:
-            content = translatePushCommandToAssembly(segment, index);
+            content = translatePushCommandToAssembly(segment, index, fileName);
             break;
          case C_POP:
-            content = translatePopCommandToAssembly(segment, index);
+            content = translatePopCommandToAssembly(segment, index, fileName);
             break;
          case C_ARITHMETIC:
          default:
@@ -58,11 +60,22 @@ public class AssemblyCodeWriter {
       }
    }
 
-   private String translatePushCommandToAssembly(String segment, Integer index) {
+   private String translatePushCommandToAssembly(String segment, Integer index, String fileName) {
+      //constant
+      String constant = "@i\nD=A\n@SP\nA=M\nM=D\n";
+      //local,argument,this,that
+      String localAndSoOn = "D=M\n@i\nD=D+A\nA=D\nD=M\n@SP\nA=M\nM=D\n";
+      //static
+      String statics = "@" + fileName + "." + index + "\n";
+      //temp
+      String tmp = "@5\nD=A\n@i\nD=D+A\n@SP\nA=M\nM=D\n";
+      //pointer push pointer 0
+      String ptr = "@3\nD=A\n@i\nA=D+A\nA=M\nD=M\n@SP\nA=M\nM=D\n";
+      String spIncrement = "@SP\nM=M+1\n";
       return "";
    }
 
-   private String translatePopCommandToAssembly(String segment, Integer index) {
+   private String translatePopCommandToAssembly(String segment, Integer index, String fileName) {
       return "";
    }
 
