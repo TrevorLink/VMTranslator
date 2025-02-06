@@ -106,13 +106,13 @@ public class VMInstructionParser {
    /**
     * @return the second argument of the current command
     */
-   public String arg2() {
+   public Integer arg2() {
       InstructionType instructionType = this.commandType();
       //Should be called only if the instruction type is push/pop type
       if (instructionType == null || InstructionType.C_ARITHMETIC.equals(instructionType)) {
          return null;
       }
-      return currentInstruction.substring(currentInstruction.lastIndexOf(" ") + 1);
+      return Integer.parseInt(currentInstruction.substring(currentInstruction.lastIndexOf(" ") + 1));
    }
 
    /**

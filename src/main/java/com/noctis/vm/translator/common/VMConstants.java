@@ -19,4 +19,6 @@ public class VMConstants {
    public static String POP_COMMAND_PREFIX = "pop";
 
    public static String COMMENT_IDENTIFIER = "//";
+
+   public static String RESULT_ASM_FILE_SUFFIX = ".asm";
 }
