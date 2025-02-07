@@ -78,9 +78,9 @@ public class VMInstructionParser {
       }
       if (VMConstants.ARITHMETIC_COMMAND_SET.contains(currentInstruction)) {
          return InstructionType.C_ARITHMETIC;
-      } else if (currentInstruction.startsWith(VMConstants.PUSH_COMMAND_PREFIX)) {
+      } else if (currentInstruction.startsWith(VMConstants.INSTRUCTION_PREFIX_PUSH)) {
          return InstructionType.C_PUSH;
-      } else if (currentInstruction.startsWith(VMConstants.POP_COMMAND_PREFIX)) {
+      } else if (currentInstruction.startsWith(VMConstants.INSTRUCTION_PREFIX_POP)) {
          return InstructionType.C_POP;
       } else {
          return null;

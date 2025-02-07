@@ -12,10 +12,29 @@ public class VMConstants {
 
    public static final Set<String> ARITHMETIC_COMMAND_SET = new HashSet<>(Arrays.asList("add", "sub", "neg", "eq", "gt", "lt", "and", "or", "not"));
 
-   public static final String PUSH_COMMAND_PREFIX = "push";
+   //----- VM Instruction Prefix -----//
+   public static final String INSTRUCTION_PREFIX_PUSH = "push";
 
-   public static final String POP_COMMAND_PREFIX = "pop";
+   public static final String INSTRUCTION_PREFIX_POP = "pop";
 
+   //----- Virtual Memory Segment Name -----//
+   public static final String VIRTUAL_SEGMENT_CONSTANT = "constant";
+
+   public static final String VIRTUAL_SEGMENT_LOCAL = "local";
+
+   public static final String VIRTUAL_SEGMENT_ARGUMENT = "argument";
+
+   public static final String VIRTUAL_SEGMENT_THIS = "this";
+
+   public static final String VIRTUAL_SEGMENT_THAT = "that";
+
+   public static final String VIRTUAL_SEGMENT_TEMP = "temp";
+
+   public static final String VIRTUAL_SEGMENT_STATIC = "static";
+
+   public static final String VIRTUAL_SEGMENT_POINTER = "pointer";
+
+   //----- Misc -----//
    public static final String COMMENT_IDENTIFIER = "//";
 
    public static final String RESULT_ASM_FILE_SUFFIX = ".asm";
@@ -23,9 +42,9 @@ public class VMConstants {
    public static final Map<String, String> virtualSegmentAndIdentifierMap = new HashMap<>(4);
 
    static {
-      virtualSegmentAndIdentifierMap.put("local", "@LCL");
-      virtualSegmentAndIdentifierMap.put("argument", "@ARG");
-      virtualSegmentAndIdentifierMap.put("this", "@THIS");
-      virtualSegmentAndIdentifierMap.put("that", "@THAT");
+      virtualSegmentAndIdentifierMap.put(VIRTUAL_SEGMENT_LOCAL, "@LCL");
+      virtualSegmentAndIdentifierMap.put(VIRTUAL_SEGMENT_ARGUMENT, "@ARG");
+      virtualSegmentAndIdentifierMap.put(VIRTUAL_SEGMENT_THIS, "@THIS");
+      virtualSegmentAndIdentifierMap.put(VIRTUAL_SEGMENT_THAT, "@THAT");
    }
 }
