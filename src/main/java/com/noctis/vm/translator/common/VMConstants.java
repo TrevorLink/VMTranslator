@@ -39,12 +39,12 @@ public class VMConstants {
 
    public static final String RESULT_ASM_FILE_SUFFIX = ".asm";
 
-   public static final Map<String, String> virtualSegmentAndIdentifierMap = new HashMap<>(4);
+   public static final Map<String, String> VIRTUAL_SEGMENT_AND_SYMBOL_MAP = new HashMap<>(4);
 
    static {
-      virtualSegmentAndIdentifierMap.put(VIRTUAL_SEGMENT_LOCAL, "@LCL");
-      virtualSegmentAndIdentifierMap.put(VIRTUAL_SEGMENT_ARGUMENT, "@ARG");
-      virtualSegmentAndIdentifierMap.put(VIRTUAL_SEGMENT_THIS, "@THIS");
-      virtualSegmentAndIdentifierMap.put(VIRTUAL_SEGMENT_THAT, "@THAT");
+      VIRTUAL_SEGMENT_AND_SYMBOL_MAP.put(VIRTUAL_SEGMENT_LOCAL, "@LCL\n");
+      VIRTUAL_SEGMENT_AND_SYMBOL_MAP.put(VIRTUAL_SEGMENT_ARGUMENT, "@ARG\n");
+      VIRTUAL_SEGMENT_AND_SYMBOL_MAP.put(VIRTUAL_SEGMENT_THIS, "@THIS\n");
+      VIRTUAL_SEGMENT_AND_SYMBOL_MAP.put(VIRTUAL_SEGMENT_THAT, "@THAT\n");
    }
 }
