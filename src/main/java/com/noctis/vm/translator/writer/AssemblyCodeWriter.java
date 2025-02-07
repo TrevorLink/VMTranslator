@@ -62,7 +62,10 @@ public class AssemblyCodeWriter {
    }
 
    /**
-    * Translate the push vm instructions to equivalent hack assembly code
+    * Translate the push vm instructions to equivalent hack assembly code.
+    * Notice that when executing the instruction set on vm emulator,
+    * the push instruction only read the virtual segment (when the segment value is not {@code constant}),
+    * the equivalent assembly code only write the corresponding value to RAM[SP]
     *
     * @param segment  push instruction segment, must be {@code constant/local/argument/this/that/static/temp/pointer}
     * @param index    push instruction operands
@@ -77,12 +80,14 @@ public class AssemblyCodeWriter {
       String spIncrement = "@SP\nM=M+1\n";
       switch (segment) {
          case VMConstants.VIRTUAL_SEGMENT_CONSTANT:
-            mainAsmCode = "@i\nD=A\n@SP\nA=M\nM=D\n";
+            //RAM[SP]=i
+            mainAsmCode = "@i\nD=A\n" + setRAMSpToD;
             break;
          case VMConstants.VIRTUAL_SEGMENT_LOCAL:
          case VMConstants.VIRTUAL_SEGMENT_ARGUMENT:
          case VMConstants.VIRTUAL_SEGMENT_THIS:
          case VMConstants.VIRTUAL_SEGMENT_THAT:
+            //RAM[SP]=RAM[XXX+i]
             String identifier = VMConstants.virtualSegmentAndIdentifierMap.get(segment);
             if (StringUtils.isEmpty(identifier)) {
                throw new AssemblyTranslationException("Empty virtual-segment-identifier mapping for segment:" + segment);
@@ -92,9 +97,11 @@ public class AssemblyCodeWriter {
          case VMConstants.VIRTUAL_SEGMENT_STATIC:
             return "@" + fileName + "." + index + "\n";
          case VMConstants.VIRTUAL_SEGMENT_TEMP:
+            //RAM[SP]=RAM[5+i]
             mainAsmCode = "@5\nD=A\n@i\nA=D+A\nD=M\n" + setRAMSpToD;
             break;
          case VMConstants.VIRTUAL_SEGMENT_POINTER:
+            //RAM[SP]=RAM[THIS]/RAM[THAT]
             mainAsmCode = "@3\nD=A\n@i\nA=D+A\nD=M\n" + setRAMSpToD;
             break;
       }
