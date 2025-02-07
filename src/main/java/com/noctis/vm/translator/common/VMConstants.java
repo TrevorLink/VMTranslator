@@ -10,7 +10,18 @@ public class VMConstants {
 
    public static final String INSTRUCTION_PATTERN = "^(push|pop)\\s(constant|local|argument|this|that|static|temp|pointer)\\s\\d+$";
 
-   public static final Set<String> ARITHMETIC_COMMAND_SET = new HashSet<>(Arrays.asList("add", "sub", "neg", "eq", "gt", "lt", "and", "or", "not"));
+   //----- Arithmetic Command -----//
+   public static final String ARITHMETIC_ADD = "add";
+   public static final String ARITHMETIC_SUB = "sub";
+   public static final String ARITHMETIC_NEG = "neg";
+   public static final String ARITHMETIC_EQ = "eq";
+   public static final String ARITHMETIC_GT = "gt";
+   public static final String ARITHMETIC_LT = "lt";
+   public static final String ARITHMETIC_AND = "and";
+   public static final String ARITHMETIC_OR = "or";
+   public static final String ARITHMETIC_NOT = "not";
+   public static final Set<String> ARITHMETIC_COMMAND_SET = new HashSet<>(Arrays.asList(ARITHMETIC_ADD, ARITHMETIC_SUB, ARITHMETIC_NEG,
+           ARITHMETIC_EQ, ARITHMETIC_GT, ARITHMETIC_LT, ARITHMETIC_AND, ARITHMETIC_OR, ARITHMETIC_NOT));
 
    //----- VM Instruction Prefix -----//
    public static final String INSTRUCTION_PREFIX_PUSH = "push";
