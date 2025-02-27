@@ -84,7 +84,7 @@ public class AssemblyCodeWriter {
               "M=D",
               "@SP",
               "M=M+1"
-              )) + newLine;
+      )) + newLine;
 
       switch (segment) {
          case VMConstants.VIRTUAL_SEGMENT_CONSTANT:
@@ -149,8 +149,7 @@ public class AssemblyCodeWriter {
    private String translatePopCommandToAssembly(String segment, Integer index, String fileName) throws AssemblyTranslationException {
       String spDecrementAndSetRAMValueToD = String.join(newLine, Arrays.asList(
               "@SP",
-              "M=M-1",
-              "A=M",
+              "AM=M-1",
               "D=M"
       )) + newLine;
 
@@ -166,10 +165,18 @@ public class AssemblyCodeWriter {
                throw new AssemblyTranslationException("Empty virtual-segment-symbol mapping for segment:" + segment);
             }
             getDestinationAddressAndSetRAMValueFromD = String.join(newLine, Arrays.asList(
+                    "@R15",
+                    "M=D",
                     symbol,
                     "D=M",
                     "@" + index,
-                    "A=D+A",
+                    "D=D+A",
+                    "@R16",
+                    "M=D",
+                    "@R15",
+                    "D=M",
+                    "@R16",
+                    "A=M",
                     "M=D"
             )) + newLine;
             break;
@@ -177,20 +184,17 @@ public class AssemblyCodeWriter {
             getDestinationAddressAndSetRAMValueFromD = this.getStaticInstructionAsmSymbol(fileName, index) + "M=D" + newLine;
             break;
          case VMConstants.VIRTUAL_SEGMENT_TEMP:
+            int finalIndex = 5 + index;
             getDestinationAddressAndSetRAMValueFromD = String.join(newLine, Arrays.asList(
-                    "@5",
-                    "D=A",
-                    "@" + index,
-                    "A=D+A",
+                    "@" + finalIndex,
                     "M=D"
             )) + newLine;
             break;
          case VMConstants.VIRTUAL_SEGMENT_POINTER:
+            String base = index == 0 ? VMConstants.VIRTUAL_SEGMENT_AND_SYMBOL_MAP.get(VMConstants.VIRTUAL_SEGMENT_THIS)
+                    : VMConstants.VIRTUAL_SEGMENT_AND_SYMBOL_MAP.get(VMConstants.VIRTUAL_SEGMENT_THAT);
             getDestinationAddressAndSetRAMValueFromD = String.join(newLine, Arrays.asList(
-                    "@3",
-                    "D=A",
-                    "@" + index,
-                    "A=D+A",
+                    base,
                     "M=D"
             )) + newLine;
             break;
@@ -268,7 +272,7 @@ public class AssemblyCodeWriter {
             ));
             break;
       }
-      return loadOperands + newLine + computeResultAndPush + newLine + spIncrement +  newLine;
+      return loadOperands + newLine + computeResultAndPush + newLine + spIncrement + newLine;
    }
 
    private String getStaticInstructionAsmSymbol(String fileName, Integer index) {
