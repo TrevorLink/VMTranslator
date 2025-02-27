@@ -5,6 +5,7 @@ import com.noctis.vm.translator.common.VMConstants;
 import com.noctis.vm.translator.exception.AssemblyTranslationException;
 import com.noctis.vm.translator.util.StringUtils;
 
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Arrays;
@@ -21,27 +22,24 @@ public class AssemblyCodeWriter {
    private final String fileName;
    private static final String newLine = System.lineSeparator();
 
-   public AssemblyCodeWriter(String fileName) throws AssemblyTranslationException {
-      if (StringUtils.isEmpty(fileName)) {
-         throw new RuntimeException("Empty result file name");
+   public AssemblyCodeWriter(String fileName) throws IOException {
+      String filePrefix = "";
+      //Absolute path file name cutting
+      if (fileName.contains(File.separator)) {
+         filePrefix = fileName.substring(0, fileName.lastIndexOf(File.separator) + 1);
+         fileName = fileName.substring(fileName.lastIndexOf(File.separator) + 1);
       }
-      this.fileName = fileName;
-      fileName = fileName + VMConstants.RESULT_ASM_FILE_SUFFIX;
-      try {
-         fw = new FileWriter(fileName);
-      } catch (IOException e) {
-         throw new AssemblyTranslationException("Error occurred when trying to write file :" + fileName, e);
-      }
+      this.fileName = fileName.substring(0, fileName.lastIndexOf("."));
+      fileName = this.fileName + VMConstants.RESULT_ASM_FILE_SUFFIX;
+      fw = new FileWriter(filePrefix + fileName);
    }
 
    public void writeArithmetic(String instruction) throws IOException {
       String content = translateArithmeticCommandToAssembly(instruction);
-      if (fw != null && StringUtils.isNotEmpty(content)) {
-         fw.write(content);
-      }
+      write(content);
    }
 
-   public void writePushPop(InstructionType instructionType, String segment, Integer index) throws IOException, AssemblyTranslationException {
+   public void writePushPop(InstructionType instructionType, String segment, Integer index) throws AssemblyTranslationException, IOException {
       String content;
       switch (instructionType) {
          case C_PUSH:
@@ -54,15 +52,17 @@ public class AssemblyCodeWriter {
          default:
             return;
       }
-      if (fw != null && StringUtils.isNotEmpty(content)) {
+      write(content);
+   }
+
+   private void write(String content) throws IOException {
+      if (StringUtils.isNotEmpty(content)) {
          fw.write(content);
       }
    }
 
    public void close() throws IOException {
-      if (fw != null) {
-         fw.close();
-      }
+      fw.close();
    }
 
    /**
@@ -78,13 +78,13 @@ public class AssemblyCodeWriter {
     */
    private String translatePushCommandToAssembly(String segment, Integer index, String fileName) throws AssemblyTranslationException {
       String setSegmentValueToD = null;
-      String spIncrementAndSetRAMSpFromD = String.join(newLine, Arrays.asList(
-              "@SP",
-              "M=M+1",
+      String setRAMSpFromDAndSpIncrement = String.join(newLine, Arrays.asList(
               "@SP",
               "A=M",
-              "M=D"
-      )) + newLine;
+              "M=D",
+              "@SP",
+              "M=M+1"
+              )) + newLine;
 
       switch (segment) {
          case VMConstants.VIRTUAL_SEGMENT_CONSTANT:
@@ -131,7 +131,7 @@ public class AssemblyCodeWriter {
             )) + newLine;
             break;
       }
-      return setSegmentValueToD + spIncrementAndSetRAMSpFromD;
+      return setSegmentValueToD + setRAMSpFromDAndSpIncrement;
    }
 
    /**
@@ -208,37 +208,43 @@ public class AssemblyCodeWriter {
               "@SP",
               "AM=M-1"
       );
+
+      String spIncrement = "@SP\nM=M+1";
+
       String saveSecondOperandToD = String.join(newLine, saveSecondOperandToDAsmList);
 
-      String loadOperands = saveSecondOperandToD + newLine + String.join(newLine, getFirstOperandAsmList);
+      String loadFirstOperandToM = String.join(newLine, getFirstOperandAsmList);
 
-      String computeAndPushResult = null;
+      String loadOperands = saveSecondOperandToD + newLine + loadFirstOperandToM;
+
+      String computeResultAndPush = null;
 
       switch (command) {
          case VMConstants.ARITHMETIC_ADD:
-            computeAndPushResult = "M=M+D";
+            computeResultAndPush = "M=D+M";
             break;
          case VMConstants.ARITHMETIC_SUB:
-            computeAndPushResult = "M=M-D";
+            computeResultAndPush = "M=M-D";
             break;
          case VMConstants.ARITHMETIC_OR:
-            computeAndPushResult = "M=M|D";
+            computeResultAndPush = "M=M|D";
             break;
          case VMConstants.ARITHMETIC_AND:
-            computeAndPushResult = "M=M&D";
+            computeResultAndPush = "M=M&D";
             break;
          case VMConstants.ARITHMETIC_NEG:
             loadOperands = saveSecondOperandToD;
-            computeAndPushResult = "M=-D";
+            computeResultAndPush = "M=-D";
             break;
          case VMConstants.ARITHMETIC_NOT:
             loadOperands = saveSecondOperandToD;
-            computeAndPushResult = "M=!D";
+            computeResultAndPush = "M=!D";
             break;
+         //Using jump to handle the eq/gt/lt commands in assembly
          case VMConstants.ARITHMETIC_EQ:
          case VMConstants.ARITHMETIC_GT:
          case VMConstants.ARITHMETIC_LT:
-            computeAndPushResult = String.join(newLine, Arrays.asList(
+            computeResultAndPush = String.join(newLine, Arrays.asList(
                     "@SP",
                     "AM=M-1",
                     "D=M",
@@ -262,7 +268,7 @@ public class AssemblyCodeWriter {
             ));
             break;
       }
-      return loadOperands + newLine + computeAndPushResult + newLine;
+      return loadOperands + newLine + computeResultAndPush + newLine + spIncrement +  newLine;
    }
 
    private String getStaticInstructionAsmSymbol(String fileName, Integer index) {

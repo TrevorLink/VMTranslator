@@ -30,18 +30,14 @@ public class VMInstructionParser {
     *
     * @param vmFileLocation absolute file path for the vm file
     */
-   public VMInstructionParser(String vmFileLocation) throws InstructionParseException {
+   public VMInstructionParser(String vmFileLocation) throws InstructionParseException, IOException {
       index = 0;
       currentInstruction = null;
-      try {
-         vmInstructionList = Files.lines(Paths.get(vmFileLocation))
-                 .filter(vmInstruction -> !isCommentLine(vmInstruction))
-                 //ignore all the whitespace at the start and end of the instruction
-                 .map(String::trim)
-                 .collect(Collectors.toList());
-      } catch (IOException e) {
-         throw new RuntimeException("Error occurred when trying to read the vm file:" + vmFileLocation, e);
-      }
+      vmInstructionList = Files.lines(Paths.get(vmFileLocation))
+              .filter(vmInstruction -> !isCommentLine(vmInstruction))
+              //ignore all the whitespace at the start and end of the instruction
+              .map(String::trim)
+              .collect(Collectors.toList());
       //Validate all the non-whitespace instructions in vm file
       for (String instruction : vmInstructionList) {
          validate(instruction);
@@ -72,29 +68,24 @@ public class VMInstructionParser {
     *
     * @return Type of VM instruction
     */
-   public InstructionType commandType() {
+   public InstructionType commandType() throws InstructionParseException {
       if (StringUtils.isEmpty(currentInstruction)) {
-         return null;
+         throw new InstructionParseException("Empty Instruction");
       }
       if (VMConstants.ARITHMETIC_COMMAND_SET.contains(currentInstruction)) {
          return InstructionType.C_ARITHMETIC;
       } else if (currentInstruction.startsWith(VMConstants.INSTRUCTION_PREFIX_PUSH)) {
          return InstructionType.C_PUSH;
-      } else if (currentInstruction.startsWith(VMConstants.INSTRUCTION_PREFIX_POP)) {
-         return InstructionType.C_POP;
       } else {
-         return null;
+         return InstructionType.C_POP;
       }
    }
 
    /**
     * @return The first argument of the vm instruction
     */
-   public String arg1() {
+   public String arg1() throws InstructionParseException {
       InstructionType instructionType = this.commandType();
-      if (instructionType == null) {
-         return null;
-      }
       //For arithmetic instruction return the instruction itself
       if (InstructionType.C_ARITHMETIC.equals(instructionType)) {
          return currentInstruction;
@@ -106,11 +97,11 @@ public class VMInstructionParser {
    /**
     * @return the second argument of the current command
     */
-   public Integer arg2() {
+   public Integer arg2() throws InstructionParseException {
       InstructionType instructionType = this.commandType();
       //Should be called only if the instruction type is push/pop type
-      if (instructionType == null || InstructionType.C_ARITHMETIC.equals(instructionType)) {
-         return null;
+      if (InstructionType.C_ARITHMETIC.equals(instructionType)) {
+         throw new InstructionParseException("Invalid instruction operands for arithmetic command" + currentInstruction);
       }
       return Integer.parseInt(currentInstruction.substring(currentInstruction.lastIndexOf(" ") + 1));
    }
