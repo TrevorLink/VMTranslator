@@ -9,7 +9,6 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Locale;
 
 /**
@@ -21,6 +20,7 @@ public class AssemblyCodeWriter {
    private final FileWriter fw;
    private final String fileName;
    private static final String newLine = System.lineSeparator();
+   private int labelIndexSuffix = 0;
 
    public AssemblyCodeWriter(String fileName) throws IOException {
       String filePrefix = "";
@@ -203,21 +203,16 @@ public class AssemblyCodeWriter {
    }
 
    private String translateArithmeticCommandToAssembly(String command) {
-      List<String> saveSecondOperandToDAsmList = Arrays.asList(
+      String spIncrement = "@SP" + newLine + "M=M+1";
+      String saveSecondOperandToD = String.join(newLine, Arrays.asList(
               "@SP",
               "AM=M-1",
               "D=M"
-      );
-      List<String> getFirstOperandAsmList = Arrays.asList(
+      ));
+      String loadFirstOperandToM = String.join(newLine, Arrays.asList(
               "@SP",
               "AM=M-1"
-      );
-
-      String spIncrement = "@SP\nM=M+1";
-
-      String saveSecondOperandToD = String.join(newLine, saveSecondOperandToDAsmList);
-
-      String loadFirstOperandToM = String.join(newLine, getFirstOperandAsmList);
+      ));
 
       String loadOperands = saveSecondOperandToD + newLine + loadFirstOperandToM;
 
@@ -231,10 +226,10 @@ public class AssemblyCodeWriter {
             computeResultAndPush = "M=M-D";
             break;
          case VMConstants.ARITHMETIC_OR:
-            computeResultAndPush = "M=M|D";
+            computeResultAndPush = "M=D|M";
             break;
          case VMConstants.ARITHMETIC_AND:
-            computeResultAndPush = "M=M&D";
+            computeResultAndPush = "M=D&M";
             break;
          case VMConstants.ARITHMETIC_NEG:
             loadOperands = saveSecondOperandToD;
@@ -248,27 +243,26 @@ public class AssemblyCodeWriter {
          case VMConstants.ARITHMETIC_EQ:
          case VMConstants.ARITHMETIC_GT:
          case VMConstants.ARITHMETIC_LT:
+            //Using index that increment itself to fix multiple arithmetic call in same vm file
+            String trueLabel = "TRUE" + labelIndexSuffix;
+            String continueLabel = "CONTINUE" + labelIndexSuffix;
+            labelIndexSuffix++;
             computeResultAndPush = String.join(newLine, Arrays.asList(
-                    "@SP",
-                    "AM=M-1",
-                    "D=M",
-                    "@SP",
-                    "AM=M-1",
                     "D=M-D",
-                    "@TRUE",
+                    "@" + trueLabel,
                     "D;J" + command.toUpperCase(Locale.ROOT),
                     //FALSE
                     "@SP",
                     "A=M",
                     "M=0",
-                    "@CONTINUE",
+                    "@" + continueLabel,
                     "0;JMP",
                     //TRUE
-                    "(TRUE)",
+                    "(" + trueLabel + ")",
                     "@SP",
                     "A=M",
                     "M=-1",
-                    "(CONTINUE)"
+                    "(" + continueLabel + ")"
             ));
             break;
       }
